@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card hero-card mb-3">
+  <div class="card-body">
+    <h2 class="mb-1">AI Smart Resume Screening</h2>
+    <p class="mb-0">Find better candidates faster with role-based hiring workflows and explainable AI scoring.</p>
+  </div>
+</div>
+
+<h2>Open Jobs</h2>
+<p class="text-muted">AI-powered screening platform for candidates and recruiters.</p>
+<form method="get" class="row g-2 mb-3">
+  <div class="col-md-8">
+    <input type="text" class="form-control" name="q" placeholder="Search by title or keyword" value="{{ request.GET.q }}">
+  </div>
+  <div class="col-md-2">
+    <button class="btn btn-dark w-100">Search</button>
+  </div>
+  <div class="col-md-2">
+    <a class="btn btn-secondary w-100" href="{% url 'home' %}">Reset</a>
+  </div>
+</form>
+<div class="row g-3">
+  {% for job in jobs %}
+    <div class="col-md-6">
+      <div class="card h-100 soft-card">
+        <div class="card-body">
+          <h5>{{ job.title }}</h5>
+          <p class="small text-muted mb-2">{{ job.organization.name }}</p>
+          <p>{{ job.description|truncatechars:220 }}</p>
+          {% if user.is_authenticated and user.role == "CLIENT" %}
+            <a class="btn btn-primary btn-sm" href="{% url 'apply-job' job.id %}">Apply</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12"><div class="alert alert-warning">No active jobs available right now.</div></div>
+  {% endfor %}
+</div>
+{% endblock %}

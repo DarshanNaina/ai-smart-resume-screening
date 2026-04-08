@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-body">
+        <h4>Post New Job</h4>
+        <form method="post">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <button class="btn btn-success" type="submit">Publish Job</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

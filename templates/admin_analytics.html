@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Admin Analytics</h3>
+<p class="text-muted small">Generated at: {{ generated_at }}</p>
+<div class="row g-3">
+  <div class="col-md-3"><div class="card soft-card"><div class="card-body"><h6>Total Organizations</h6><h4>{{ total_orgs }}</h4></div></div></div>
+  <div class="col-md-3"><div class="card soft-card"><div class="card-body"><h6>Approved Organizations</h6><h4>{{ approved_orgs }}</h4></div></div></div>
+  <div class="col-md-3"><div class="card soft-card"><div class="card-body"><h6>Blocked Organizations</h6><h4>{{ blocked_orgs }}</h4></div></div></div>
+  <div class="col-md-3"><div class="card soft-card"><div class="card-body"><h6>HR Users</h6><h4>{{ total_hr }}</h4></div></div></div>
+  <div class="col-md-3"><div class="card soft-card"><div class="card-body"><h6>Candidates</h6><h4>{{ total_candidates }}</h4></div></div></div>
+  <div class="col-md-3"><div class="card soft-card"><div class="card-body"><h6>Total Jobs</h6><h4>{{ total_jobs }}</h4></div></div></div>
+  <div class="col-md-3"><div class="card soft-card"><div class="card-body"><h6>Active Jobs</h6><h4>{{ active_jobs }}</h4></div></div></div>
+  <div class="col-md-3"><div class="card soft-card"><div class="card-body"><h6>Total Applications</h6><h4>{{ total_apps }}</h4></div></div></div>
+  <div class="col-md-3"><div class="card soft-card"><div class="card-body"><h6>Shortlisted</h6><h4>{{ shortlisted_apps }}</h4></div></div></div>
+  <div class="col-md-3"><div class="card soft-card"><div class="card-body"><h6>Interviews Scheduled</h6><h4>{{ interview_apps }}</h4></div></div></div>
+</div>
+<div class="card soft-card mt-3">
+  <div class="card-body">
+    <h6 class="section-title">Hiring Funnel</h6>
+    <canvas id="adminStatusChart" height="100"></canvas>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const adminCtx = document.getElementById("adminStatusChart");
+  if (adminCtx) {
+    new Chart(adminCtx, {
+      type: "doughnut",
+      data: {
+        labels: {{ chart_labels|safe }},
+        datasets: [{ data: {{ chart_values|safe }}, backgroundColor: ["#94a3b8","#22c55e","#ef4444","#f59e0b"] }]
+      },
+      options: { responsive: true }
+    });
+  }
+</script>
+{% endblock %}

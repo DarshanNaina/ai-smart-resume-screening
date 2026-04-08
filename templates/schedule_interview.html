@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-body">
+        <h4>Schedule Interview</h4>
+        <p class="text-muted">Candidate: {{ application.candidate.username }} | Job: {{ application.job.title }}</p>
+        <form method="post">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <button class="btn btn-warning" type="submit">Schedule & Notify</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+:root {
+  --brand: #2563eb;
+  --brand-dark: #1e40af;
+  --bg-soft: #f8fafc;
+}
+
+body {
+  background: var(--bg-soft);
+  color: #0f172a;
+}
+
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.hero-card {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb 40%, #60a5fa);
+  color: #fff;
+  border-radius: 16px;
+  border: none;
+}
+
+.soft-card {
+  border: 0;
+  border-radius: 14px;
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.08);
+}
+
+.section-title {
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.badge-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+}
+
+.upload-dropzone {
+  border: 2px dashed #93c5fd;
+  border-radius: 12px;
+  background: #eff6ff;
+  padding: 1.2rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.upload-dropzone.dragover {
+  border-color: var(--brand);
+  background: #dbeafe;
+}
+
+.kpi-card h2 {
+  margin-bottom: 0;
+  font-weight: 700;
+}
+
+input, select, textarea {
+  border-radius: 10px !important;
+}
+
+.table thead th {
+  font-weight: 700;
+  color: #334155;
+}

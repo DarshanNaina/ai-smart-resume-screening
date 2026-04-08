@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card hero-card mb-3">
+  <div class="card-body">
+    <h3 class="mb-1">Admin Control Room</h3>
+    <p class="mb-0">Monitor platform health, user growth, and hiring throughput in real time.</p>
+  </div>
+</div>
+<h3>Admin Dashboard</h3>
+<div class="row g-3 mt-1">
+  <div class="col-md-4"><div class="card soft-card"><div class="card-body"><h6>HR Users</h6><h4>{{ organizations }}</h4></div></div></div>
+  <div class="col-md-4"><div class="card soft-card"><div class="card-body"><h6>Jobs Posted</h6><h4>{{ jobs_count }}</h4></div></div></div>
+  <div class="col-md-4"><div class="card soft-card"><div class="card-body"><h6>Applications</h6><h4>{{ applications_count }}</h4></div></div></div>
+</div>
+<div class="row g-3 mt-1">
+  <div class="col-md-4"><div class="card soft-card"><div class="card-body"><h6>Shortlisted</h6><h4>{{ shortlisted_count }}</h4></div></div></div>
+</div>
+<p class="text-muted mt-3">Use Django admin for full control: users, organizations, logs, resumes.</p>
+<a class="btn btn-dark btn-sm" href="/admin/">Open Admin Panel</a>
+<a class="btn btn-outline-primary btn-sm" href="{% url 'admin-analytics' %}">View Analytics</a>
+
+<h5 class="mt-4">Applications Oversight</h5>
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>Candidate</th>
+        <th>Job</th>
+        <th>Status</th>
+        <th>Selection</th>
+        <th>Offer</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for app in applications %}
+      <tr>
+        <td>{{ app.candidate.username }}</td>
+        <td>{{ app.job.title }}</td>
+        <td>{{ app.status }}</td>
+        <td>{{ app.get_selection_stage_display }} | {{ app.is_selected|yesno:"Selected,Not Selected" }}</td>
+        <td>{{ app.offer_sent|yesno:"Sent,Pending" }}</td>
+        <td>
+          <form method="post" action="{% url 'review-application' app.id %}">
+            {% csrf_token %}
+            <select name="status" class="form-select form-select-sm mb-1">
+              <option value="APPLIED" {% if app.status == "APPLIED" %}selected{% endif %}>Applied</option>
+              <option value="SHORTLISTED" {% if app.status == "SHORTLISTED" %}selected{% endif %}>Shortlisted</option>
+              <option value="REJECTED" {% if app.status == "REJECTED" %}selected{% endif %}>Rejected</option>
+              <option value="INTERVIEW" {% if app.status == "INTERVIEW" %}selected{% endif %}>Interview</option>
+            </select>
+            <select name="selection_stage" class="form-select form-select-sm mb-1">
+              <option value="NONE" {% if app.selection_stage == "NONE" %}selected{% endif %}>Not Selected</option>
+              <option value="ROUND2" {% if app.selection_stage == "ROUND2" %}selected{% endif %}>Round 2</option>
+              <option value="ROUND3" {% if app.selection_stage == "ROUND3" %}selected{% endif %}>Round 3</option>
+              <option value="DIRECT" {% if app.selection_stage == "DIRECT" %}selected{% endif %}>Direct Selection</option>
+            </select>
+            <div class="form-check mb-1">
+              <input class="form-check-input" type="checkbox" name="is_selected" id="adminSelected{{ app.id }}" {% if app.is_selected %}checked{% endif %}>
+              <label class="form-check-label small" for="adminSelected{{ app.id }}">Selected</label>
+            </div>
+            <textarea name="feedback" class="form-control form-control-sm mb-1" rows="2">{{ app.feedback }}</textarea>
+            <button class="btn btn-sm btn-dark">Update</button>
+          </form>
+          <hr class="my-2" />
+          <form method="post" action="{% url 'upload-offer' app.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="file" name="offer_letter" class="form-control form-control-sm mb-1" accept="application/pdf,.pdf" />
+            <button class="btn btn-sm btn-success">Send Offer PDF</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6">No applications yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if page_obj and page_obj.paginator.num_pages > 1 %}
+<nav class="mt-2">
+  <ul class="pagination pagination-sm">
+    {% if page_obj.has_previous %}
+      <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+    {% endif %}
+    <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+    {% if page_obj.has_next %}
+      <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card soft-card">
+      <div class="card-body">
+        <h4 class="mb-3">Create Account</h4>
+        <p class="text-muted small">For HR role, enter organization name.</p>
+        <form method="post">
+          {% csrf_token %}
+          <div class="row g-2">
+            <div class="col-md-6">{{ form.username.label_tag }} {{ form.username }}</div>
+            <div class="col-md-6">{{ form.email.label_tag }} {{ form.email }}</div>
+            <div class="col-md-6">{{ form.role.label_tag }} {{ form.role }}</div>
+            <div class="col-md-6" id="org-name-group">{{ form.organization_name.label_tag }} {{ form.organization_name }}</div>
+            <div class="col-md-6">{{ form.password1.label_tag }} {{ form.password1 }}</div>
+            <div class="col-md-6">{{ form.password2.label_tag }} {{ form.password2 }}</div>
+          </div>
+          <button class="btn btn-success mt-3" type="submit">Register</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

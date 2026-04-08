@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card hero-card mb-3">
+  <div class="card-body">
+    <h3 class="mb-1">HR Command Center</h3>
+    <p class="mb-0">Track applicants, rank top candidates, and update hiring decisions quickly.</p>
+  </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center">
+  <h3>HR Dashboard</h3>
+  <div>
+    <a href="{% url 'export-applications' %}?format=csv" class="btn btn-outline-success btn-sm">Export CSV</a>
+    <a href="{% url 'export-applications' %}?format=xlsx" class="btn btn-outline-success btn-sm">Export Excel</a>
+    <a href="{% url 'export-applications' %}?format=pdf" class="btn btn-outline-success btn-sm">Export PDF</a>
+    <a href="{% url 'create-job' %}" class="btn btn-primary btn-sm">Post New Job</a>
+  </div>
+</div>
+
+<div class="row g-3 mt-1">
+  <div class="col-md-4"><div class="card soft-card kpi-card"><div class="card-body"><small>Total Applications</small><h2>{{ total_apps }}</h2></div></div></div>
+  <div class="col-md-4"><div class="card soft-card kpi-card"><div class="card-body"><small>Shortlisted</small><h2>{{ shortlisted_apps }}</h2></div></div></div>
+  <div class="col-md-4"><div class="card soft-card kpi-card"><div class="card-body"><small>Interviews Scheduled</small><h2>{{ interview_apps }}</h2></div></div></div>
+</div>
+
+<h5 class="mt-4">My Jobs</h5>
+<div class="list-group">
+  {% for job in jobs %}
+    <div class="list-group-item">
+      <strong>{{ job.title }}</strong>
+      <span class="badge {% if job.is_active %}bg-success{% else %}bg-secondary{% endif %}">{{ job.is_active|yesno:"Active,Inactive" }}</span>
+      <p class="mb-0 text-muted small">{{ job.description|truncatechars:180 }}</p>
+    </div>
+  {% empty %}
+    <div class="alert alert-warning">No jobs posted yet.</div>
+  {% endfor %}
+</div>
+
+<h5 class="mt-4">Applications (AI Ranked)</h5>
+<form method="get" class="row g-2 mb-2">
+  <div class="col-md-3">
+    <input type="text" name="skill" class="form-control form-control-sm" placeholder="Filter by matched skill" value="{{ request.GET.skill }}">
+  </div>
+  <div class="col-md-2">
+    <input type="number" step="0.1" name="min_score" class="form-control form-control-sm" placeholder="Min score" value="{{ request.GET.min_score }}">
+  </div>
+  <div class="col-md-3">
+    <select name="status" class="form-select form-select-sm">
+      <option value="">All Status</option>
+      <option value="APPLIED" {% if request.GET.status == "APPLIED" %}selected{% endif %}>Applied</option>
+      <option value="SHORTLISTED" {% if request.GET.status == "SHORTLISTED" %}selected{% endif %}>Shortlisted</option>
+      <option value="REJECTED" {% if request.GET.status == "REJECTED" %}selected{% endif %}>Rejected</option>
+      <option value="INTERVIEW" {% if request.GET.status == "INTERVIEW" %}selected{% endif %}>Interview</option>
+    </select>
+  </div>
+  <div class="col-md-2">
+    <select name="sort" class="form-select form-select-sm">
+      <option value="score_desc" {% if sort == "score_desc" %}selected{% endif %}>Score High-Low</option>
+      <option value="score_asc" {% if sort == "score_asc" %}selected{% endif %}>Score Low-High</option>
+      <option value="latest" {% if sort == "latest" %}selected{% endif %}>Latest First</option>
+      <option value="oldest" {% if sort == "oldest" %}selected{% endif %}>Oldest First</option>
+    </select>
+  </div>
+  <div class="col-md-2">
+    <button class="btn btn-sm btn-dark w-100">Apply Filters</button>
+  </div>
+  <div class="col-md-2">
+    <a class="btn btn-sm btn-secondary w-100" href="{% url 'dashboard' %}">Reset</a>
+  </div>
+</form>
+<div class="card soft-card mb-3">
+  <div class="card-body">
+    <h6 class="section-title">Application Status Distribution</h6>
+    <canvas id="hrStatusChart" height="90"></canvas>
+  </div>
+</div>
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>Candidate</th>
+        <th>Job</th>
+        <th>Client Email</th>
+        <th>Assigned HR</th>
+        <th>Resume</th>
+        <th>Score</th>
+        <th>Status</th>
+        <th>Selection</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for app in applications %}
+      <tr>
+        <td>{{ app.candidate.username }}</td>
+        <td>{{ app.job.title }}</td>
+        <td>{{ app.candidate.email }}</td>
+        <td>{{ app.assigned_hr.username|default:"Unassigned" }}</td>
+        <td>
+          {% if app.resume %}
+            <a href="{{ app.resume.url }}" target="_blank" rel="noopener">View</a>
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>{{ app.ai_score }}</td>
+        <td><span class="badge bg-light text-dark badge-status">{{ app.status }}</span></td>
+        <td>
+          <div class="small">Stage: <strong>{{ app.get_selection_stage_display }}</strong></div>
+          <div class="small">Selected: <strong>{{ app.is_selected|yesno:"Yes,No" }}</strong></div>
+        </td>
+        <td>
+          <a class="btn btn-outline-primary btn-sm mb-1" href="{% url 'schedule-interview' app.id %}">Schedule</a>
+          <form method="post" action="{% url 'review-application' app.id %}">
+            {% csrf_token %}
+            <select name="status" class="form-select form-select-sm mb-1">
+              <option value="APPLIED" {% if app.status == "APPLIED" %}selected{% endif %}>Applied</option>
+              <option value="SHORTLISTED" {% if app.status == "SHORTLISTED" %}selected{% endif %}>Shortlisted</option>
+              <option value="REJECTED" {% if app.status == "REJECTED" %}selected{% endif %}>Rejected</option>
+              <option value="INTERVIEW" {% if app.status == "INTERVIEW" %}selected{% endif %}>Interview</option>
+            </select>
+            <select name="selection_stage" class="form-select form-select-sm mb-1">
+              <option value="NONE" {% if app.selection_stage == "NONE" %}selected{% endif %}>Not Selected</option>
+              <option value="ROUND2" {% if app.selection_stage == "ROUND2" %}selected{% endif %}>Round 2 Selected</option>
+              <option value="ROUND3" {% if app.selection_stage == "ROUND3" %}selected{% endif %}>Round 3 Selected</option>
+              <option value="DIRECT" {% if app.selection_stage == "DIRECT" %}selected{% endif %}>Direct Selection</option>
+            </select>
+            <div class="form-check mb-1">
+              <input type="checkbox" class="form-check-input" id="isSelected{{ app.id }}" name="is_selected" {% if app.is_selected %}checked{% endif %}>
+              <label class="form-check-label small" for="isSelected{{ app.id }}">Client Selected</label>
+            </div>
+            <textarea name="feedback" class="form-control form-control-sm mb-1" rows="2" placeholder="Optional feedback">{{ app.feedback }}</textarea>
+            <button class="btn btn-sm btn-dark">Save Review</button>
+          </form>
+
+          <hr class="my-2" />
+          <button
+            class="btn btn-sm btn-outline-warning w-100"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#scheduleInline{{ app.id }}"
+            aria-expanded="false"
+            aria-controls="scheduleInline{{ app.id }}"
+          >
+            Set Interview Details
+          </button>
+
+          <div class="collapse mt-2" id="scheduleInline{{ app.id }}">
+            <form method="post" action="{% url 'schedule-interview' app.id %}">
+              {% csrf_token %}
+              <label class="form-label small mb-1">Interview Date/Time</label>
+              <input type="datetime-local" name="scheduled_at" class="form-control form-control-sm mb-2" />
+
+              <label class="form-label small mb-1">Meeting Link</label>
+              <input type="url" name="meeting_link" class="form-control form-control-sm mb-2" placeholder="https://meet.google.com/..." />
+
+              <label class="form-label small mb-1">Notes (optional)</label>
+              <textarea name="notes" class="form-control form-control-sm mb-2" rows="2" placeholder="Any instructions for candidate"></textarea>
+
+              <button class="btn btn-sm btn-warning w-100" type="submit">Schedule & Notify</button>
+            </form>
+          </div>
+
+          <hr class="my-2" />
+          <form method="post" action="{% url 'upload-offer' app.id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label class="form-label small mb-1">Upload Offer Letter (PDF)</label>
+            <input type="file" name="offer_letter" class="form-control form-control-sm mb-2" accept="application/pdf,.pdf" />
+            <button class="btn btn-sm btn-success w-100" type="submit">Send Uploaded Offer PDF</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">No applications yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if page_obj and page_obj.paginator.num_pages > 1 %}
+<nav class="mt-3">
+  <ul class="pagination pagination-sm">
+    {% if page_obj.has_previous %}
+      <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ request.GET.status }}&skill={{ request.GET.skill }}&min_score={{ request.GET.min_score }}&sort={{ sort }}">Previous</a></li>
+    {% endif %}
+    <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+    {% if page_obj.has_next %}
+      <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ request.GET.status }}&skill={{ request.GET.skill }}&min_score={{ request.GET.min_score }}&sort={{ sort }}">Next</a></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const hrCtx = document.getElementById("hrStatusChart");
+  if (hrCtx) {
+    new Chart(hrCtx, {
+      type: "bar",
+      data: {
+        labels: {{ status_chart_labels|safe }},
+        datasets: [{ label: "Applications", data: {{ status_chart_values|safe }}, backgroundColor: "#3b82f6" }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+  }
+</script>
+{% endblock %}

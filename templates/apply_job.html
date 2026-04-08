@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="col-md-8 mx-auto">
+    <div class="card soft-card">
+      <div class="card-body">
+        <h4>Apply for {{ job.title }}</h4>
+        <p class="text-muted">{{ job.organization.name }}</p>
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div id="resume-dropzone" class="upload-dropzone mb-3">
+            <p class="mb-1"><strong>Drag & drop your resume here</strong></p>
+            <p class="small text-muted mb-2">or choose a file manually</p>
+            {{ form.resume }}
+            <small id="resume-file-info" class="d-block mt-2 text-muted"></small>
+          </div>
+          <button class="btn btn-primary" type="submit">Submit Application</button>
+        </form>
+        <p class="small text-muted mt-2">Allowed: PDF, DOCX | Max size: 200MB</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
