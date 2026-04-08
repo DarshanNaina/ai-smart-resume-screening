@@ -133,3 +133,4 @@ Use same environment values and commands:
 - `gunicorn` is for Linux hosting (Render/Railway/Heroku).
 - On Windows local machine, use `python manage.py runserver`.
 - Keep `.env` private and never commit secrets.
+"# smart-resume-screening" 
