@@ -54,7 +54,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "resume_system.wsgi.application"
 
-if os.getenv("DATABASE_URL"):
+'''if os.getenv("DATABASE_URL"):
     import dj_database_url
 
     DATABASES = {
@@ -70,7 +70,23 @@ else:
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
         }
+    }'''
+# Default: SQLite (works immediately, no setup needed)
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
+}
+
+# Auto-switch to PostgreSQL ONLY if valid URL exists
+db_url = os.getenv("DATABASE_URL", "").strip()
+if db_url and db_url.startswith(("postgres://", "postgresql://")):
+    import dj_database_url
+    DATABASES["default"] = dj_database_url.parse(
+        db_url, conn_max_age=600, ssl_require=True
+    )
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
