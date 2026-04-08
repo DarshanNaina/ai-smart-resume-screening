@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AI-Based Smart Resume Screening System
 
 Production-ready Django web app for resume screening with:
@@ -136,3 +137,6 @@ Use same environment values and commands:
 "# smart-resume-screening" 
 "# AIsmart-resume-screening" 
 "# AIsmart-resume-screening" 
+=======
+# AIsmart-resume-screening
+>>>>>>> cac77764d27682fb7bd463809a2271da607aeee1
