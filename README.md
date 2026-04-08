@@ -134,3 +134,4 @@ Use same environment values and commands:
 - On Windows local machine, use `python manage.py runserver`.
 - Keep `.env` private and never commit secrets.
 "# smart-resume-screening" 
+"# AIsmart-resume-screening" 
