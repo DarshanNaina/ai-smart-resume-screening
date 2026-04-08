@@ -135,3 +135,4 @@ Use same environment values and commands:
 - Keep `.env` private and never commit secrets.
 "# smart-resume-screening" 
 "# AIsmart-resume-screening" 
+"# AIsmart-resume-screening" 
