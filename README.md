@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # AI-Based Smart Resume Screening System
 
 Flask web app for resume screening with enhanced security and Hugging Face Spaces deployment.
@@ -157,3 +158,17 @@ Use same environment values and commands:
 # AIsmart-resume-screening
 >>>>>>> cac77764d27682fb7bd463809a2271da607aeee1
 "# ai-smart-resume-screening" 
+=======
+---
+title: Ai Smart Resume Screening
+emoji: ⚡
+colorFrom: pink
+colorTo: indigo
+sdk: gradio
+sdk_version: 6.13.0
+app_file: app.py
+pinned: false
+---
+
+Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
+>>>>>>> 100b274 (initial commit)
