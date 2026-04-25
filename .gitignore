@@ -13,3 +13,4 @@ media/
 staticfiles/
 .idea/
 .vscode/
+*.pdf*.pdf 
