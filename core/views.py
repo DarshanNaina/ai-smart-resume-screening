@@ -1,5 +1,7 @@
 import csv
 from io import BytesIO
+import os
+from urllib.parse import quote, unquote
 
 from django.contrib import messages
 from django.contrib.auth import login, logout
@@ -18,6 +20,7 @@ from .forms import (
     JobForm,
     LoginForm,
     OTPForm,
+    SecretCodeForm,
     UserRegisterForm,
 )
 from .models import Application, Job, OTPCode, Organization, User
@@ -32,10 +35,66 @@ def home(request):
     return render(request, "home.html", {"jobs": jobs})
 
 
+def verify_secret_view(request):
+    role = request.GET.get('role', 'CLIENT')
+    if role.upper() not in ['ADMIN', 'HR']:
+        return redirect('home')
+    
+    if request.method == "POST":
+        form = SecretCodeForm(request.POST)
+        if form.is_valid():
+            secret_code = os.getenv('ADMIN_HR_SECRET_CODE', 'default_secret')
+            if form.cleaned_data['secret_code'] == secret_code:
+                request.session['secret_verified'] = True
+                next_url = unquote(request.GET.get('next', 'home'))
+                
+                # If this is for login, store user_id in session
+                user_id = request.GET.get('user_id')
+                if user_id:
+                    request.session['pending_login_user_id'] = user_id
+                
+                return redirect(next_url)
+            else:
+                messages.error(request, "Invalid secret code.")
+    else:
+        form = SecretCodeForm()
+    return render(request, "verify_secret.html", {"form": form})
+
+
 def register_view(request):
+    # Handle pending registration after secret verification
+    pending_registration = request.session.get('pending_registration')
+    if pending_registration:
+        request.session.pop('pending_registration', None)
+        request.session.pop('secret_verified', None)  # Clear after use
+        
+        # Recreate form with stored data
+        form = UserRegisterForm(pending_registration)
+        if form.is_valid():
+            user = form.save()
+            send_plain_mail(
+                "Registration Successful",
+                "Your account has been created successfully.",
+                user.email,
+            )
+            messages.success(request, "Registration complete. Please login.")
+            return redirect("login")
+        # If form is invalid, show it again
+    
     if request.method == "POST":
         form = UserRegisterForm(request.POST)
         if form.is_valid():
+            role = form.cleaned_data.get('role')
+            if role in ['ADMIN', 'HR']:
+                if not request.session.get('secret_verified'):
+                    # Store form data in session
+                    request.session['pending_registration'] = dict(request.POST)
+                    next_url = '/register/'
+                    return redirect(f'/verify-secret/?role={role}&next={quote(next_url)}')
+            
+            # Clear secret verification after use
+            request.session.pop('secret_verified', None)
+            
             user = form.save()
             send_plain_mail(
                 "Registration Successful",
@@ -50,10 +109,40 @@ def register_view(request):
 
 
 def login_view(request):
+    # Handle pending login after secret verification
+    pending_user_id = request.session.get('pending_login_user_id')
+    if pending_user_id:
+        try:
+            user = User.objects.get(id=pending_user_id)
+            request.session.pop('pending_login_user_id', None)
+            request.session.pop('secret_verified', None)  # Clear after use
+            
+            otp = OTPCode.create_for_user(user)
+            request.session["otp_user_id"] = user.id
+            try:
+                send_plain_mail("Your OTP Code", f"OTP: {otp.code}. Expires in 5 minutes.", user.email)
+            except Exception as exc:
+                messages.error(request, f"OTP email failed: {exc}")
+                return redirect("login")
+            messages.info(request, "OTP sent to your email.")
+            return redirect("verify-otp")
+        except User.DoesNotExist:
+            messages.error(request, "User not found.")
+            return redirect("login")
+    
     if request.method == "POST":
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
+            # Check if user needs secret verification
+            if user.role in ['ADMIN', 'HR']:
+                if not request.session.get('secret_verified'):
+                    next_url = '/login/'
+                    return redirect(f'/verify-secret/?role={user.role}&next={quote(next_url)}&user_id={user.id}')
+            
+            # Clear secret verification after use
+            request.session.pop('secret_verified', None)
+            
             otp = OTPCode.create_for_user(user)
             request.session["otp_user_id"] = user.id
             try:
@@ -261,6 +350,9 @@ def schedule_interview(request, application_id):
 
 def logout_view(request):
     logout(request)
+    request.session.pop('secret_verified', None)
+    request.session.pop('pending_registration', None)
+    request.session.pop('pending_login_user_id', None)
     return redirect("login")
 
 

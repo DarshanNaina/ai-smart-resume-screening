@@ -32,6 +32,10 @@ class OTPForm(forms.Form):
     otp = forms.CharField(max_length=6, min_length=6)
 
 
+class SecretCodeForm(forms.Form):
+    secret_code = forms.CharField(max_length=100, widget=forms.PasswordInput)
+
+
 class LoginForm(AuthenticationForm):
     username = forms.CharField(max_length=150)
     password = forms.CharField(widget=forms.PasswordInput)

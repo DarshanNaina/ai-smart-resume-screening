@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Dashboard</h2>
+  <p>Welcome, {{ user.username }}!</p>
+  <p>Role: {{ user.role }}</p>
+  <!-- Add more dashboard content based on role -->
+</div>
+{% endblock %}
