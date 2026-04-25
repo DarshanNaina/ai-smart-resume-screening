@@ -1,53 +1,69 @@
 <<<<<<< HEAD
 # AI-Based Smart Resume Screening System
 
-Production-ready Django web app for resume screening with:
-- OTP login via email
-- Role-based access (Admin, HR, Client)
-- Resume parsing (PDF/DOCX)
-- AI scoring (TF-IDF + cosine similarity + skill gap analysis)
-- Candidate ranking and interview scheduling
-- PostgreSQL + Gunicorn + WhiteNoise deployment support
+Flask web app for resume screening with enhanced security and Hugging Face Spaces deployment.
 
-## 1) Project Structure
+## Features
 
-- `resume_system/` Django project settings and WSGI/ASGI
-- `core/` app for auth, roles, jobs, applications, interviews
-- `templates/` all UI templates
-- `resume_parser.py`, `nlp_processing.py`, `skill_matching.py`, `matching_algorithm.py` reused AI engine modules
+- **Security Layer**: Secret code verification for Admin/HR access
+- **OTP Login**: Secure authentication via email
+- **Role-based Access**: Admin, HR, Client roles
+- **Resume Processing**: AI-powered scoring and ranking
+- **SQLite Database**: Easy deployment
+- **Hugging Face Spaces**: Online deployment
 
-## 2) Local Setup (Step-by-Step)
+## Security Enhancement
 
-1. Create and activate virtual environment:
-   - Windows PowerShell:
-     - `python -m venv .venv`
-     - `.venv\Scripts\Activate.ps1`
-2. Install dependencies:
-   - `pip install -r requirements.txt`
-3. Create `.env` from `.env.example` and fill values.
-4. Run migrations:
-   - `python manage.py makemigrations`
-   - `python manage.py migrate`
-5. Create admin account:
-   - `python manage.py createsuperuser`
-6. Run development server:
-   - `python manage.py runserver`
-7. Open:
-   - `http://127.0.0.1:8000/`
+For Admin and HR roles, users must enter a secret code before accessing login/registration pages. The secret code is stored securely in environment variables.
 
-## 3) Role Flow
+## Local Setup
 
-- **Admin**
-  - Access `/admin/`
-  - Manage users (HR/Client), organizations, jobs, applications, OTP records
-- **HR**
-  - Register as HR with organization
-  - Post jobs
-  - View AI-ranked applications
-  - Schedule interviews and send email
-- **Client**
-  - Register/login with OTP
-  - Apply to jobs with PDF/DOCX resume
+1. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. Set environment variables:
+   - `SECRET_KEY`: Flask secret key
+   - `ADMIN_HR_SECRET_CODE`: Secret code for Admin/HR access
+
+3. Run the app:
+   ```bash
+   python app.py
+   ```
+
+## Deployment on Hugging Face Spaces
+
+1. **Create Account**: Sign up at [Hugging Face](https://huggingface.co)
+
+2. **Create New Space**:
+   - Go to Spaces
+   - Click "New Space"
+   - Choose "Flask" as the SDK
+   - Name your space
+
+3. **Upload Project Files**:
+   - Upload all files from your project
+   - Ensure `app.py`, `requirements.txt`, `templates/`, `static/` are included
+
+4. **Set Up Requirements**:
+   - The `requirements.txt` is automatically used
+
+5. **Configure Environment Variables**:
+   - In Space settings, add:
+     - `SECRET_KEY`: Your Flask secret key
+     - `ADMIN_HR_SECRET_CODE`: The secret code for Admin/HR
+
+6. **Run the Application**:
+   - Hugging Face will automatically run `python app.py`
+   - Your app will be live at `https://yourusername-yourspace.hf.space`
+
+## Usage
+
+- **Home**: Browse jobs
+- **Register/Login**: With role selection
+- **Admin/HR**: Requires secret code verification first
+- **Dashboard**: Role-specific functionality
   - See status and AI score
 
 ## 4) OTP + Email
