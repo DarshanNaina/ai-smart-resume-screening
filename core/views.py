@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LogoutView
 from django.core.paginator import Paginator
 from django.core.mail import EmailMessage
-from django.http import HttpResponse
+from django.http import HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -68,8 +68,12 @@ def register_view(request):
         request.session.pop('pending_registration', None)
         request.session.pop('secret_verified', None)  # Clear after use
         
-        # Recreate form with stored data
-        form = UserRegisterForm(data=pending_registration)
+        # Recreate form with stored data as QueryDict
+        post_data = QueryDict('', mutable=True)
+        for key, value in pending_registration.items():
+            post_data[key] = value
+        
+        form = UserRegisterForm(data=post_data)
         if form.is_valid():
             user = form.save()
             try:
@@ -95,8 +99,8 @@ def register_view(request):
             role = form.cleaned_data.get('role')
             if role in ['ADMIN', 'HR']:
                 if not request.session.get('secret_verified'):
-                    # Store form data in session
-                    request.session['pending_registration'] = dict(request.POST)
+                    # Store form data in session (convert QueryDict to regular dict)
+                    request.session['pending_registration'] = dict(request.POST.items())
                     next_url = '/register/'
                     return redirect(f'/verify-secret/?role={role}&next={quote(next_url)}')
             
