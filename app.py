@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, TextAreaField, FileField, SelectField, SubmitField
@@ -13,10 +13,22 @@ import smtplib
 from email.mime.text import MIMEText
 
 app = Flask(__name__)
+
+# Configuration - support both local and Render deployment
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///db.sqlite3')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'media'
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+
+# Static files configuration for production (whitenoise)
+app.config['STATIC_FOLDER'] = 'static'
+app.config['STATIC_URL_PATH'] = '/static'
+
+# Enable whitenoise for static file serving on production
+if os.getenv('RENDER'):
+    from whitenoise import WhiteNoise
+    app.wsgi_app = WhiteNoise(app.wsgi_app, root='static')
 
 db = SQLAlchemy(app)
 

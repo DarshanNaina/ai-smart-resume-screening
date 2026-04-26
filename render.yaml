@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: smart-resume-screening
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 4 --timeout 120
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: RENDER
+        value: "true"
+      - key: DATABASE_URL
+        value: "postgresql://sams_db_gynz_user:Zf0Y2Nh2uWQZQwP5eLSUuaBDxWSAiwHL@dpg-d7iik7t8nd3s738hufgg-a/sams_db_gynz"
+    disk:
+      mountPath: /app/media
+      sizeGB: 1
