@@ -47,7 +47,7 @@
     <input type="text" class="form-control"
            name="q"
            placeholder="🔍 Search"
-           value="{{ request.args.get('q', '') }}">
+           value="{{ request.GET.q }}">
   </div>
   <div class="col-md-2">
     <button class="btn btn-dark w-100">Search</button>
