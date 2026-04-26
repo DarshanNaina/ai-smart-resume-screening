@@ -30,9 +30,39 @@ from .services import score_resume_against_job, send_offer_letter_email, send_pl
 def home(request):
     jobs = Job.objects.filter(is_active=True, organization__is_blocked=False)
     q = request.GET.get("q", "").strip()
+    experience = request.GET.get("experience", "").strip()
+    age = request.GET.get("age", "").strip()
+    location = request.GET.get("location", "").strip()
+    role = request.GET.get("role", "").strip()
+    
+    # Text search
     if q:
         jobs = jobs.filter(title__icontains=q) | jobs.filter(description__icontains=q)
-    return render(request, "home.html", {"jobs": jobs, "q": q})
+    
+    # Experience filter
+    if experience:
+        try:
+            min_exp = int(experience)
+            jobs = jobs.filter(min_experience__lte=min_exp)
+        except ValueError:
+            pass
+    
+    # Location filter
+    if location:
+        jobs = jobs.filter(location__icontains=location)
+    
+    # Role/Title filter
+    if role:
+        jobs = jobs.filter(title__icontains=role)
+    
+    return render(request, "home.html", {
+        "jobs": jobs, 
+        "q": q,
+        "experience": experience,
+        "age": age,
+        "location": location,
+        "role": role,
+    })
 
 
 def verify_secret_view(request):

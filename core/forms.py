@@ -44,7 +44,7 @@ class LoginForm(AuthenticationForm):
 class JobForm(forms.ModelForm):
     class Meta:
         model = Job
-        fields = ["title", "description", "min_experience", "is_active"]
+        fields = ["title", "description", "location", "min_experience", "is_active"]
 
 
 class ApplicationForm(forms.ModelForm):

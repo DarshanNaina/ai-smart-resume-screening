@@ -1,4 +1,57 @@
 document.addEventListener("DOMContentLoaded", function () {
+  var body = document.body;
+  var themeToggle = document.getElementById("themeToggle");
+  if (body && themeToggle) {
+    var savedTheme = localStorage.getItem("resume-ui-theme");
+    if (savedTheme === "dark") {
+      body.classList.add("dark-mode");
+    }
+    themeToggle.addEventListener("click", function () {
+      body.classList.toggle("dark-mode");
+      var mode = body.classList.contains("dark-mode") ? "dark" : "light";
+      localStorage.setItem("resume-ui-theme", mode);
+    });
+  }
+
+  var filterToggle = document.getElementById("filter-toggle");
+  var mobileFilterFab = document.getElementById("mobile-filter-fab");
+  var filtersPanel = document.getElementById("filters-panel");
+  if (filterToggle && filtersPanel) {
+    var syncFilterState = function (isOpen) {
+      filterToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      if (mobileFilterFab) {
+        mobileFilterFab.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      }
+    };
+
+    syncFilterState(filtersPanel.classList.contains("is-open"));
+    filterToggle.addEventListener("click", function () {
+      filtersPanel.classList.toggle("is-open");
+      syncFilterState(filtersPanel.classList.contains("is-open"));
+    });
+    if (mobileFilterFab) {
+      mobileFilterFab.addEventListener("click", function () {
+        filtersPanel.classList.toggle("is-open");
+        syncFilterState(filtersPanel.classList.contains("is-open"));
+      });
+    }
+  }
+
+  var navPills = document.querySelectorAll(".nav-pill, .mobile-nav-pill");
+  document.querySelectorAll("[data-scroll-target]").forEach(function (trigger) {
+    trigger.addEventListener("click", function (e) {
+      var targetId = trigger.getAttribute("data-scroll-target");
+      if (!targetId) return;
+      var target = document.getElementById(targetId);
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      navPills.forEach(function (pill) {
+        pill.classList.toggle("is-active", pill.getAttribute("data-scroll-target") === targetId);
+      });
+    });
+  });
+
   var roleInput = document.getElementById("id_role");
   var orgGroup = document.getElementById("org-name-group");
   if (roleInput && orgGroup) {
@@ -65,5 +118,9 @@ document.addEventListener("DOMContentLoaded", function () {
       resumeInput.files = dt.files;
       updateInfo(file);
     });
+  }
+
+  if (window.lucide && typeof window.lucide.createIcons === "function") {
+    window.lucide.createIcons();
   }
 });

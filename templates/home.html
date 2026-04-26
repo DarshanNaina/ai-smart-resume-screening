@@ -1,99 +1,223 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-<style>
-.fade-in {
-  animation: fadeIn 1s ease-in;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px);}
-  to { opacity: 1; transform: translateY(0);}
-}
-.soft-card {
-  transition: all 0.3s ease;
-  border-radius: 12px;
-}
-.soft-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-}
-.hero-card {
-  background: linear-gradient(135deg, #1f1c2c, #928dab);
-  color: white;
-  border-radius: 15px;
-}
-.btn-primary:hover {
-  transform: scale(1.05);
-}
-.form-control:focus {
-  box-shadow: 0 0 10px rgba(13,110,253,0.5);
-}
-</style>
-
-<!-- HERO -->
-<div class="card hero-card mb-4 fade-in">
-  <div class="card-body text-center">
-    <h2>🚀 AI Smart Resume Screening</h2>
-    <p>Find better candidates faster with AI scoring.</p>
-  </div>
-</div>
-
-<h2 class="fade-in">Open Jobs</h2>
-
-<!-- SEARCH -->
-<form method="get" class="row g-2 mb-4 fade-in">
-  <div class="col-md-8">
-    <input type="text" class="form-control"
-           name="q"
-           placeholder="🔍 Search"
-           value="{{ q }}">
-  </div>
-  <div class="col-md-2">
-    <button class="btn btn-dark w-100">Search</button>
-  </div>
-  <div class="col-md-2">
-    <a class="btn btn-secondary w-100" href="{% url 'home' %}?q=">Reset</a>
-  </div>
-</form>
-
-<!-- JOB LIST -->
-<div class="row g-4">
-
-  {% if jobs %}
-    {% for job in jobs %}
-    <div class="col-md-6 fade-in">
-      <div class="card soft-card h-100">
-        <div class="card-body d-flex flex-column">
-
-          <h5>{{ job.title }}</h5>
-          <p class="text-muted">🏢 {{ job.organization.name }}</p>
-
-          <!-- FIXED truncate -->
-          <p>
-            {{ job.description|truncatechars:200 }}
-          </p>
-
-          <!-- FIXED url -->
-          {% if user and user.role == "CLIENT" %}
-          <a class="btn btn-primary mt-auto"
-             href="{% url 'apply-job' job.id %}">
-             Apply Now →
+<div class="dashboard-shell">
+  <section id="overview-section" class="glass-panel hero-surface">
+    <div class="hero-copy">
+      <p class="eyebrow">AI Resume Screening Platform</p>
+      <h1>Screen top talent in minutes with explainable AI rankings.</h1>
+      <p class="hero-subtitle">
+        Move from resume overload to shortlists faster with smart filters, clean candidate views,
+        and instant fit signals across every role.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-brand btn-interactive" href="#jobs-section" data-scroll-target="jobs-section">
+          <i data-lucide="rocket"></i>
+          <span>Start Screening</span>
+        </a>
+        {% if user.is_authenticated %}
+          <a class="btn btn-subtle btn-interactive" href="{% url 'dashboard' %}">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Open Dashboard</span>
           </a>
-          {% endif %}
+        {% else %}
+          <a class="btn btn-subtle btn-interactive" href="{% url 'register' %}">
+            <i data-lucide="user-plus"></i>
+            <span>Create Account</span>
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="hero-metrics">
+      <div class="metric-chip">
+        <p class="metric-label">Active Roles</p>
+        <h3>{{ jobs|length }}</h3>
+      </div>
+      <div class="metric-chip">
+        <p class="metric-label">Search Scope</p>
+        <h3>{% if q %}Focused{% else %}All Jobs{% endif %}</h3>
+      </div>
+      <div class="metric-chip">
+        <p class="metric-label">Pipeline Mode</p>
+        <h3>AI Ranked</h3>
+      </div>
+    </div>
+  </section>
 
+  <nav class="glass-panel section-nav" aria-label="Section navigation">
+    <button class="nav-pill is-active" type="button" data-scroll-target="overview-section">Overview</button>
+    <button class="nav-pill" type="button" data-scroll-target="jobs-section">Job Matches</button>
+    <button class="nav-pill" type="button" data-scroll-target="insights-section">Insights</button>
+  </nav>
+
+  <form method="get" id="jobSearchForm" class="glass-panel search-surface">
+    <div class="search-row">
+      <div class="search-input-wrap">
+        <i data-lucide="search"></i>
+        <input
+          type="text"
+          class="form-control search-input"
+          name="q"
+          placeholder="Search by job title or keywords"
+          value="{{ q }}"
+        >
+      </div>
+      <button type="submit" class="btn btn-brand btn-interactive search-submit">
+        <i data-lucide="sparkles"></i>
+        <span>Search</span>
+      </button>
+      <button
+        id="filter-toggle"
+        type="button"
+        class="btn btn-subtle btn-interactive filter-toggle"
+        {% if experience or age or location or role %}
+          aria-expanded="true"
+        {% else %}
+          aria-expanded="false"
+        {% endif %}
+      >
+        <i data-lucide="sliders-horizontal"></i>
+        <span>Filters</span>
+      </button>
+    </div>
+
+    <section id="filters-panel" class="filters-panel {% if experience or age or location or role %}is-open{% endif %}">
+      <div class="filters-grid">
+        <label class="filter-field">
+          <span>Experience (years)</span>
+          <input type="number" min="0" name="experience" class="form-control" value="{{ experience }}" placeholder="Maximum required">
+        </label>
+        <label class="filter-field">
+          <span>Age</span>
+          <input type="number" min="18" name="age" class="form-control" value="{{ age }}" placeholder="Preferred age">
+        </label>
+        <label class="filter-field">
+          <span>Location</span>
+          <input type="text" name="location" class="form-control" value="{{ location }}" placeholder="Remote, New York, Bengaluru">
+        </label>
+        <label class="filter-field">
+          <span>Role</span>
+          <input type="text" name="role" class="form-control" value="{{ role }}" placeholder="ML Engineer, Product Designer">
+        </label>
+      </div>
+      <div class="filter-actions">
+        <button type="submit" class="btn btn-brand btn-interactive">
+          <i data-lucide="funnel"></i>
+          <span>Apply Filters</span>
+        </button>
+        <a href="{% url 'home' %}" class="btn btn-subtle btn-interactive">
+          <i data-lucide="rotate-ccw"></i>
+          <span>Reset</span>
+        </a>
+      </div>
+    </section>
+  </form>
+
+  <section id="jobs-section" class="content-grid">
+    <div class="jobs-column">
+      <div class="section-header">
+        <h2>Recommended Open Roles</h2>
+        <p>Explore AI-ready openings and move directly to application review.</p>
+      </div>
+
+      {% if jobs %}
+        <div class="jobs-grid">
+          {% for job in jobs %}
+            <article class="glass-panel job-card">
+              <div class="job-card-top">
+                <div>
+                  <h3>{{ job.title }}</h3>
+                  <p class="job-org">{{ job.organization.name }}</p>
+                </div>
+                <span class="fit-pill">AI Ready</span>
+              </div>
+              <div class="job-meta">
+                <span><i data-lucide="map-pin"></i>{{ job.location|default:"Remote" }}</span>
+                <span><i data-lucide="briefcase-business"></i>{{ job.min_experience }}+ years</span>
+                <span><i data-lucide="calendar-days"></i>{{ job.created_at|date:"M d, Y" }}</span>
+              </div>
+              <p class="job-description">{{ job.description|truncatechars:220 }}</p>
+              <div class="job-actions">
+                {% if user.is_authenticated and user.role == "CLIENT" %}
+                  <a class="btn btn-brand btn-interactive" href="{% url 'apply-job' job.id %}">
+                    <i data-lucide="send"></i>
+                    <span>Apply Now</span>
+                  </a>
+                {% else %}
+                  <a class="btn btn-subtle btn-interactive" href="{% url 'login' %}">
+                    <i data-lucide="log-in"></i>
+                    <span>Sign In to Apply</span>
+                  </a>
+                {% endif %}
+              </div>
+            </article>
+          {% endfor %}
         </div>
-      </div>
+      {% else %}
+        <div class="glass-panel empty-state">
+          <i data-lucide="search-x"></i>
+          <h3>No matching jobs found</h3>
+          <p>Try broadening your filters to discover more opportunities.</p>
+          <a href="{% url 'home' %}" class="btn btn-brand btn-interactive">
+            <i data-lucide="refresh-cw"></i>
+            <span>Clear Filters</span>
+          </a>
+        </div>
+      {% endif %}
     </div>
-    {% endfor %}
-  {% else %}
-    <div class="col-12">
-      <div class="alert alert-warning text-center">
-        ⚠️ No active jobs available
-      </div>
-    </div>
-  {% endif %}
 
+    <aside id="insights-section" class="insight-column">
+      <section class="glass-panel insight-card">
+        <h3>Pipeline Snapshot</h3>
+        <ul class="insight-list">
+          <li>
+            <span>Open Positions</span>
+            <strong>{{ jobs|length }}</strong>
+          </li>
+          <li>
+            <span>Experience Filter</span>
+            <strong>{% if experience %}{{ experience }} yrs{% else %}Any{% endif %}</strong>
+          </li>
+          <li>
+            <span>Location Focus</span>
+            <strong>{% if location %}{{ location }}{% else %}Global{% endif %}</strong>
+          </li>
+        </ul>
+      </section>
+
+      <section class="glass-panel insight-card">
+        <h3>Quick Navigation</h3>
+        <div class="quick-links">
+          <button class="link-chip" type="button" data-scroll-target="overview-section">Overview</button>
+          <button class="link-chip" type="button" data-scroll-target="jobs-section">Job Listings</button>
+          {% if user.is_authenticated %}
+            <a class="link-chip" href="{% url 'dashboard' %}">My Dashboard</a>
+          {% else %}
+            <a class="link-chip" href="{% url 'register' %}">Create Account</a>
+          {% endif %}
+        </div>
+      </section>
+    </aside>
+  </section>
+
+  <button id="mobile-filter-fab" type="button" class="btn btn-brand btn-interactive mobile-filter-fab" aria-label="Open filters">
+    <i data-lucide="sliders-horizontal"></i>
+    <span>Filters</span>
+  </button>
+
+  <nav class="mobile-bottom-nav glass-panel" aria-label="Mobile quick navigation">
+    <button class="mobile-nav-pill is-active" type="button" data-scroll-target="overview-section">
+      <i data-lucide="house"></i>
+      <span>Overview</span>
+    </button>
+    <button class="mobile-nav-pill" type="button" data-scroll-target="jobs-section">
+      <i data-lucide="briefcase-business"></i>
+      <span>Jobs</span>
+    </button>
+    <button class="mobile-nav-pill" type="button" data-scroll-target="insights-section">
+      <i data-lucide="bar-chart-3"></i>
+      <span>Insights</span>
+    </button>
+  </nav>
 </div>
-
 {% endblock %}
