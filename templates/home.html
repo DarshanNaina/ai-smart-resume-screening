@@ -47,13 +47,13 @@
     <input type="text" class="form-control"
            name="q"
            placeholder="🔍 Search"
-           value="{{ request.GET.q }}">
+           value="{{ request.args.get('q', '') }}">
   </div>
   <div class="col-md-2">
     <button class="btn btn-dark w-100">Search</button>
   </div>
   <div class="col-md-2">
-    <a class="btn btn-secondary w-100" href="{% url 'home' %}">Reset</a>
+    <a class="btn btn-secondary w-100" href="{{ url_for('home') }}">Reset</a>
   </div>
 </form>
 
@@ -77,7 +77,7 @@
           <!-- FIXED url -->
           {% if user and user.role == "CLIENT" %}
           <a class="btn btn-primary mt-auto"
-             href="href="{% url 'apply-job' job.id %}">
+             href="{{ url_for('apply_job', job_id=job.id) }}">
              Apply Now →
           </a>
           {% endif %}
