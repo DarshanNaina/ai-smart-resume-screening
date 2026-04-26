@@ -69,17 +69,25 @@ def register_view(request):
         request.session.pop('secret_verified', None)  # Clear after use
         
         # Recreate form with stored data
-        form = UserRegisterForm(pending_registration)
+        form = UserRegisterForm(data=pending_registration)
         if form.is_valid():
             user = form.save()
-            send_plain_mail(
-                "Registration Successful",
-                "Your account has been created successfully.",
-                user.email,
-            )
+            try:
+                send_plain_mail(
+                    "Registration Successful",
+                    "Your account has been created successfully.",
+                    user.email,
+                )
+            except Exception as exc:
+                messages.warning(request, f"Account created but email failed: {exc}")
             messages.success(request, "Registration complete. Please login.")
             return redirect("login")
-        # If form is invalid, show it again
+        else:
+            # Show form errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+        # If form is invalid, show it again with errors
     
     if request.method == "POST":
         form = UserRegisterForm(request.POST)
@@ -96,13 +104,21 @@ def register_view(request):
             request.session.pop('secret_verified', None)
             
             user = form.save()
-            send_plain_mail(
-                "Registration Successful",
-                "Your account has been created successfully.",
-                user.email,
-            )
+            try:
+                send_plain_mail(
+                    "Registration Successful",
+                    "Your account has been created successfully.",
+                    user.email,
+                )
+            except Exception as exc:
+                messages.warning(request, f"Account created but email failed: {exc}")
             messages.success(request, "Registration complete. Please login.")
             return redirect("login")
+        else:
+            # Show form errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = UserRegisterForm()
     return render(request, "registration/register.html", {"form": form})
