@@ -71,7 +71,7 @@
 
           <!-- FIXED truncate -->
           <p>
-            {{ job.description[:200] }}...
+            {{ job.description|truncatechars:200 }}
           </p>
 
           <!-- FIXED url -->
