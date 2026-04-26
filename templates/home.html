@@ -3,77 +3,51 @@
 {% block content %}
 
 <style>
-/* 🔥 Smooth fade animation */
 .fade-in {
   animation: fadeIn 1s ease-in;
 }
-
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px);}
   to { opacity: 1; transform: translateY(0);}
 }
-
-/* 🔥 Card hover effect */
 .soft-card {
   transition: all 0.3s ease;
   border-radius: 12px;
 }
-
 .soft-card:hover {
   transform: translateY(-8px) scale(1.02);
   box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
-
-/* 🔥 Hero section */
 .hero-card {
   background: linear-gradient(135deg, #1f1c2c, #928dab);
   color: white;
   border-radius: 15px;
-  transition: 0.3s;
 }
-
-.hero-card:hover {
-  transform: scale(1.01);
-}
-
-/* 🔥 Button animation */
-.btn-primary {
-  transition: 0.3s;
-}
-
 .btn-primary:hover {
-  background-color: #0d6efd;
   transform: scale(1.05);
 }
-
-/* 🔥 Search box focus */
 .form-control:focus {
   box-shadow: 0 0 10px rgba(13,110,253,0.5);
-  border-color: #0d6efd;
 }
 </style>
 
-<!-- 🔥 HERO SECTION -->
+<!-- HERO -->
 <div class="card hero-card mb-4 fade-in">
   <div class="card-body text-center">
-    <h2 class="mb-2">🚀 AI Smart Resume Screening</h2>
-    <p class="mb-0">
-      Find better candidates faster with role-based hiring workflows and explainable AI scoring.
-    </p>
+    <h2>🚀 AI Smart Resume Screening</h2>
+    <p>Find better candidates faster with AI scoring.</p>
   </div>
 </div>
 
-<!-- 🔥 HEADER -->
-<h2 class="mb-1 fade-in">Open Jobs</h2>
-<p class="text-muted fade-in">AI-powered screening platform for candidates and recruiters.</p>
+<h2 class="fade-in">Open Jobs</h2>
 
-<!-- 🔥 SEARCH BAR -->
+<!-- SEARCH -->
 <form method="get" class="row g-2 mb-4 fade-in">
   <div class="col-md-8">
     <input type="text" class="form-control"
            name="q"
-           placeholder="🔍 Search by title or keyword"
-           value="{{ request.GET.q }}">
+           placeholder="🔍 Search"
+           value="{{ request.args.get('q', '') }}">
   </div>
   <div class="col-md-2">
     <button class="btn btn-dark w-100">Search</button>
@@ -83,40 +57,43 @@
   </div>
 </form>
 
-<!-- 🔥 JOB CARDS -->
+<!-- JOB LIST -->
 <div class="row g-4">
-  {% for job in jobs %}
+
+  {% if jobs %}
+    {% for job in jobs %}
     <div class="col-md-6 fade-in">
-      <div class="card h-100 soft-card">
+      <div class="card soft-card h-100">
         <div class="card-body d-flex flex-column">
-          
-          <h5 class="fw-bold">{{ job.title }}</h5>
-          <p class="small text-muted mb-2">
-            🏢 {{ job.organization.name }}
+
+          <h5>{{ job.title }}</h5>
+          <p class="text-muted">🏢 {{ job.organization.name }}</p>
+
+          <!-- FIXED truncate -->
+          <p>
+            {{ job.description[:200] }}...
           </p>
 
-          <p class="flex-grow-1">
-            {{ job.description|truncatechars:200 }}
-          </p>
-
-          {% if user.is_authenticated and user.role == "CLIENT" %}
-            <a class="btn btn-primary btn-sm mt-auto"
-               href="{% url 'apply-job' job.id %}">
-               Apply Now →
-            </a>
+          <!-- FIXED url -->
+          {% if user and user.role == "CLIENT" %}
+          <a class="btn btn-primary mt-auto"
+             href="{{ url_for('apply_job', job_id=job.id) }}">
+             Apply Now →
+          </a>
           {% endif %}
 
         </div>
       </div>
     </div>
-
-  {% empty %}
-    <div class="col-12 fade-in">
+    {% endfor %}
+  {% else %}
+    <div class="col-12">
       <div class="alert alert-warning text-center">
-        ⚠️ No active jobs available right now.
+        ⚠️ No active jobs available
       </div>
     </div>
-  {% endfor %}
+  {% endif %}
+
 </div>
 
 {% endblock %}
