@@ -32,7 +32,7 @@ def home(request):
     q = request.GET.get("q", "").strip()
     if q:
         jobs = jobs.filter(title__icontains=q) | jobs.filter(description__icontains=q)
-    return render(request, "home.html", {"jobs": jobs})
+    return render(request, "home.html", {"jobs": jobs, "q": q})
 
 
 def verify_secret_view(request):
