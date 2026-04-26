@@ -143,7 +143,7 @@ def home():
     if q:
         jobs = [job for job in jobs if q.lower() in job.title.lower() or q.lower() in job.description.lower()]
     user = User.query.get(session.get('user_id')) if session.get('user_id') else None
-    return render_template('home.html', jobs=jobs, user=user)
+    return render_template('home.html', jobs=jobs, user=user, q=q)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
